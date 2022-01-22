@@ -15,7 +15,7 @@ class CourseService {
 
   Course getCourseById(Long id) {
 //    courseRepository.getCourseById(id)
-    new Course(title: 'Telerik DevOps', presenter: 'Didoooooooooooooo')
+    new Course(title: 'Telerik DevOps', presenter: 'Аниии')
   }
 
   Course getCourseByTitle(String title) {

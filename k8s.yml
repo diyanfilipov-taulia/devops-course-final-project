@@ -29,12 +29,18 @@ metadata:
 data:
   application.yml: |-
     spring:
-     cloud:
-      kubernetes:
-        discovery:
-          all-namespaces: false
-          service-labels:
-            spring-boot: true
+      cloud:
+        kubernetes:
+          discovery:
+            all-namespaces: false
+              service-labels:
+                spring-boot: true
+    management
+      metrics
+        export
+          datadog
+            api-key: ''
+            step: 30s
 ---
 
 apiVersion: v1
