@@ -61,11 +61,3 @@ jobs:
         with:
           url-to-hit: https://devops-final-project-${{ secrets.OKTETO_NAMESPACE }}.cloud.okteto.net/course/1
           expected-statuses: "200"
-
-#      - name: Deploy preview environment
-#        uses: okteto/deploy-preview@latest
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          name: pr-${{ github.event.number }}-mayamitova
-#          timeout: 15m
