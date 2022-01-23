@@ -93,7 +93,7 @@ jobs:
       - name: Check docker image scan status
         if: ${{ steps.docker-image-scan.outcome == 'failure' }}
         run: exit 1
-      - name: Publish docker image
-        if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
-        run: docker push --all-tags ${{ secrets.DOCKERHUB_USERNAME }}/devops-final-project
+#      - name: Publish docker image
+#        if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+#        run: docker push --all-tags ${{ secrets.DOCKERHUB_USERNAME }}/devops-final-project
 
