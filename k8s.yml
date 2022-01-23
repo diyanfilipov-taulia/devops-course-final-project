@@ -1,25 +1,172 @@
+apiVersion: v1
+kind: PersistentVolumeClaim        # Create a PersistentVolumeClaim to request a PersistentVolume storage
+metadata:                          # Claim name and labels
+  name: mysql-pv-claim
+  labels:
+    app: polling-app
+spec:                              # Access mode and resource limits
+  accessModes:
+    - ReadWriteOnce                # ReadWriteOnce means the volume can be mounted as read-write by a single Node
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1                    # API version
+kind: Service                     # Type of kubernetes resource
+metadata:
+  name: mysql         # Name of the resource
+  labels:                         # Labels that will be applied to the resource
+    app: mysql
+  annotations:
+    dev.okteto.com/auto-ingress: "true"
+spec:
+  ports:
+    - port: 3306
+  selector:                       # Selects any Pod with labels `app=polling-app,tier=mysql`
+    app: mysql
+---
+apiVersion: apps/v1
+kind: Deployment                    # Type of the kubernetes resource
+metadata:
+  name: mysql           # Name of the deployment
+  labels:                           # Labels applied to this deployment
+    app: mysql
+spec:
+  selector:
+    matchLabels:                    # This deployment applies to the Pods matching the specified labels
+      app: mysql
+  strategy:
+    type: Recreate
+  template:                         # Template for the Pods in this deployment
+    metadata:
+      labels:                       # Labels to be applied to the Pods in this deployment
+        app: mysql
+    spec:                           # The spec for the containers that will be run inside the Pods in this deployment
+      containers:
+        - image: mysql:8.0.19          # The container image
+          name: mysql
+          env:                        # Environment variables passed to the container
+            # all passwords are previously created with
+            # kubectl create secret generic devops-course-db --from-literal=root-usr-pass=admin --from-literal=username=devopscoursedbuser --from-literal=password=test1234 --from-literal=database=devops-course-db -o yaml [--dry-run=client]
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:                # Read environment variables from kubernetes secrets
+                secretKeyRef:
+                  name: devops-course-db
+                  key: rootpassword
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: devops-course-db
+                  key: database
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: devops-course-db
+                  key: username
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: devops-course-db
+                  key: password
+          ports:
+            - containerPort: 3306        # The port that the container exposes
+              name: mysql
+          volumeMounts:
+            - name: mysql-persistent-storage  # This name should match the name specified in `volumes.name`
+              mountPath: /var/lib/mysql
+      volumes:                       # A PersistentVolume is mounted as a volume to the Pod
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: mysql-pv-claim
+
+#apiVersion: apps/v1
+#kind: Deployment
+#metadata:
+#  name: mysql
+#spec:
+#  selector:
+#    matchLabels:
+#      app: mysql
+#  strategy:
+#    type: Recreate
+#  template:
+#    metadata:
+#      labels:
+#        app: mysql
+#    spec:
+#      containers:
+#        - image: mysql:5.6
+#          name: mysql
+#          env:
+#            - name: MYSQL_ROOT_PASSWORD
+#              valueFrom:
+#                secretKeyRef:
+#                  name: mysql-secret
+#                  key: password
+#          ports:
+#            - containerPort: 3306
+#              name: mysql
+#          volumeMounts:
+#            - name: mysql-persistent-storage
+#              mountPath: /var/lib/mysql
+#      volumes:
+#        - name: mysql-persistent-storage
+#          persistentVolumeClaim:
+#            claimName: mysql-pv-claim
+#---
+#
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: mysql
+#  annotations:
+#    dev.okteto.com/auto-ingress: "true"
+#spec:
+#  ports:
+#    - port: 3306
+#      targetPort: 3306
+#  selector:
+#    app: mysql
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  labels:
-    app: devops-final-project
   name: devops-final-project
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: devops-final-project
-  strategy: {}
   template:
     metadata:
       labels:
         app: devops-final-project
     spec:
       containers:
-        - image: diyanfilipov/devops-final-project
-          name: devops-final-project
-          ports:
-          - containerPort: 8080
+      - image: diyanfilipov/devops-final-project
+        name: devops-final-project
+        env: # Environment variables passed to the container
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom: # Read environment variables from kubernetes secrets
+              secretKeyRef:
+                name: devops-course-db
+                key: rootpassword
+          - name: MYSQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: devops-course-db
+                key: database
+          - name: MYSQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: devops-course-db
+                key: username
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: devops-course-db
+                key: password
 ---
 
 kind: ConfigMap
@@ -50,10 +197,10 @@ metadata:
   annotations:
     dev.okteto.com/auto-ingress: "true"
 spec:
-  type: ClusterIP
+  type: ClusterIP  
   ports:
-    - name: "devops-final-project"
-      port: 8080
-      targetPort: 8080
+  - name: "devops-final-project"
+    port: 10333
+    targetPort: 10333
   selector:
     app: devops-final-project

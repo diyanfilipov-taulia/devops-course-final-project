@@ -4,6 +4,7 @@ plugins {
 	id 'groovy'
 	id "org.sonarqube" version "3.3"
 	id 'jacoco'
+	id 'org.flywaydb.flyway' version '8.4.2'
 //	id 'com.bmuschko.docker-remote-api' version '7.0.1'
 //	id 'com.palantir.docker' version '0.22.1'
 }
@@ -25,7 +26,7 @@ dependencies {
 	implementation 'org.flywaydb:flyway-core'
 //	implementation 'com.netflix.spectator:spectator-api:1.0.14'
 	runtimeOnly 'mysql:mysql-connector-java'
-	runtimeOnly 'com.h2database:h2:2.0.206'
+	runtimeOnly 'com.h2database:h2'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
@@ -49,20 +50,6 @@ test {
 tasks.named('sonarqube').configure {
 	dependsOn test
 }
-
-//tasks.register('dockerBuildImage', DockerBuildImage) {
-//	inputDir = file('.')
-//	tag = 'telerik/devops-final-project'
-//	configure {
-//		dependsOn build
-//	}
-//}
-
-//docker {
-//	name "telerik/${project.name}:${project.version}"
-//	files "build/libs/build/libs/devops-final-project-${project.version}.jar"
-//}
-
 
 jacocoTestReport {
 	reports {

@@ -6,5 +6,4 @@ volumes:
 sync:
   - .:/usr/src/app
 forward:
-  - 8080:8080
-  - 5005:5005
+  - 10333:10333

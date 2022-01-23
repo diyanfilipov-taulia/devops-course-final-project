@@ -11,9 +11,10 @@ import javax.persistence.Table
 class Course {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   Long id
 
   String title
   String presenter
+  boolean certified
 }
