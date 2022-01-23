@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: test
+name: CI workflow
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the develop branch
@@ -10,149 +10,90 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-#  validate-gradle:
-#    runs-on: ubuntu-latest
-#    steps:
-#    - uses: actions/checkout@v2
-#    - name: Set up JDK 11
-#      uses: actions/setup-java@v1
-#      with:
-#        java-version: 11
-#        distribution: 'adopt'
-#    - name: Validate Gradle wrapper
-#      uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
-#  SAST:
-#    needs: validate-gradle
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 30
-#
-#    steps:
-#      - uses: actions/checkout@v2
-#      - name: Set up JDK 11
-#        uses: actions/setup-java@v1
-#        with:
-#          java-version: 11
-#          distribution: 'adopt'
-#      - name: Execute Jacoco Report
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-#        run: ./gradlew sonarqube
-#  security:
-#    needs: validate-gradle
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@master
-#      - name: Run Snyk to check for vulnerabilities
-#        uses: snyk/actions/gradle-jdk11@master
-#        continue-on-error: true # To make sure that SARIF upload gets called
-#        env:
-#          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-#        with:
-#          args: "--severity-threshold=critical --sarif-file-output=snyk.sarif"
-#      - name: Upload result to GitHub Code Scanning
-#        uses: github/codeql-action/upload-sarif@v1
-#        with:
-#          sarif_file: snyk.sarif
-#  docker-image-scan:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v2
+  test-project:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK 11
+      uses: actions/setup-java@v1
+      with:
+        java-version: 11
+        distribution: 'adopt'
+    - name: Validate Gradle wrapper
+      uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
+    - name: Run unit and integration tests
+      run: ./gradlew check
+  SAST:
+    needs: test-project
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+          distribution: 'adopt'
+      - name: Execute Jacoco Report
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew sonarqube
+  security:
+    needs: test-project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/gradle-jdk11@master
+        continue-on-error: true # To make sure that SARIF upload gets called
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: "--severity-threshold=critical --sarif-file-output=snyk.sarif"
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: snyk.sarif
+  docker-image-scan:
+    needs: [SAST, security]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
 #      - name: Build project
 #        run: ./gradlew build
-#      - name: Build a Docker image
-#        env:
-#          IMAGE_TAG: ${{ github.sha }}
-#        run: |
-#          docker build -t diyanfilipov/devops-final-project:${{ env.IMAGE_TAG }} . \
-#
-#          docker tag diyanfilipov/devops-final-project:${{ env.IMAGE_TAG }} diyanfilipov/devops-final-project:latest
-#      - name: Security scan on docker image
-#        uses: snyk/actions/docker@master
-#        id: docker-image-scan
-#        continue-on-error: true
-#        env:
-#          # In order to use the Snyk Action you will need to have a Snyk API token.
-#          # More details in https://github.com/snyk/actions#getting-your-snyk-token
-#          # or you can signup for free at https://snyk.io/login
-#          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-#        with:
-#          image: diyanfilipov/devops-final-project
-#          args: --file=Dockerfile
-#            --severity-threshold=critical
-#            --sarif-file-output=docker.snyk.sarif
-#          sarif: false
-#      - name: Upload sarif file to Github Code Scanning
-#        if: always()
-#        uses: github/codeql-action/upload-sarif@v1
-#        with:
-#          sarif_file: docker.snyk.sarif
-#      - name: Check docker image scan status
-#        if: ${{ steps.docker-image-scan.outcome == 'failure' }}
-#        run: exit 1
-#      - name: Publish docker image
-##        if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
-#        run: docker push --all-tags diyanfilipov/devops-final-project
+      - name: Build a Docker image
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/devops-final-project:${{ env.IMAGE_TAG }} . \
 
+          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/devops-final-project:${{ env.IMAGE_TAG }} ${{ secrets.DOCKERHUB_USERNAME }}/devops-final-project:latest
+      - name: Security scan on docker image
+        uses: snyk/actions/docker@master
+        id: docker-image-scan
+        continue-on-error: true
+        env:
+          # In order to use the Snyk Action you will need to have a Snyk API token.
+          # More details in https://github.com/snyk/actions#getting-your-snyk-token
+          # or you can signup for free at https://snyk.io/login
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ secrets.DOCKERHUB_USERNAME }}/devops-final-project
+          args: --file=Dockerfile
+            --severity-threshold=critical
+            --sarif-file-output=docker.snyk.sarif
+          sarif: false
+      - name: Upload sarif file to Github Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: docker.snyk.sarif
+      - name: Check docker image scan status
+        if: ${{ steps.docker-image-scan.outcome == 'failure' }}
+        run: exit 1
+      - name: Publish docker image
+        if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+        run: docker push --all-tags ${{ secrets.DOCKERHUB_USERNAME }}/devops-final-project
 
-#  docker:
-##    needs: [SAST, security]
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 30
-#
-#    steps:
-#    - uses: actions/checkout@v2
-#    - name: Set up JDK 11
-#      uses: actions/setup-java@v1
-#      with:
-#        java-version: 11
-#        distribution: 'adopt'
-#    - name: Setup Gradle
-#      uses: gradle/gradle-build-action@v2
-#    - name: Execute Gradle build
-#      run: ./gradlew build
-#    - name: Log in to Docker Hub
-#      uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
-#      with:
-#        username: ${{ secrets.DOCKERHUB_USERNAME }}
-#        password: ${{ secrets.DOCKERHUB_TOKEN }}
-#
-#    - name: Extract metadata (tags, labels) for Docker
-#      id: meta
-#      uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-#      with:
-#        images: diyanfilipov/devops-final-project
-#
-#    - name: Build and push Docker image
-#      uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
-#      with:
-#        context: .
-#        push: true
-#        tags: ${{ steps.meta.outputs.tags }}
-#        labels: ${{ steps.meta.outputs.labels }}
-
-
-
-#    - name: Set up QEMU
-#      uses: docker/setup-qemu-action@v1
-#    - name: Set up Docker Buildx
-#      uses: docker/setup-buildx-action@v1
-#    - name: Login to DockerHub
-#      uses: docker/login-action@v1
-#      with:
-#        username: ${{ secrets.DOCKERHUB_USERNAME }}
-#        password: ${{ secrets.DOCKERHUB_TOKEN }}
-#    - name: Build and push
-#      id: docker_build
-#      uses: docker/build-push-action@v2
-#      with:
-#        push: true
-#        tags: telerik/devops-final-project:latest
-
-
-#     - name: Grant execute permission for gradlew
-#       run: chmod +x gradlew
-
-#     - name: Test coverage with Gradle
-#       run: >
-#         ./gradlew testCoverage
