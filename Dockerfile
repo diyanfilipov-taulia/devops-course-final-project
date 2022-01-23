@@ -12,7 +12,7 @@
 # ref: https://docs.docker.com/develop/develop-images/multistage-build/
 
 # temp container to build using gradle
-FROM openjdk:11 as TEMP_BUILD_JAR
+FROM openjdk:16 as TEMP_BUILD_JAR
 WORKDIR /workspace/app
 
 COPY gradle gradle
@@ -22,7 +22,7 @@ COPY src src
 RUN ./gradlew build -x test
 
 # actual container
-FROM openjdk:11
+FROM openjdk:16
 ENV ARTIFACT_NAME=devops-final-project-0.0.1.jar
 ENV APP_HOME=/workspace/app
 
