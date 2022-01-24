@@ -167,11 +167,11 @@ spec:
               secretKeyRef:
                 name: devops-course-db
                 key: password
-          - name: NEWRELIC_KEY # previously added via `kubectl create secret generic devops-course-nr --from-literal=newreliclicence=YOUR_NR_TOKEN`
+          - name: NEW_RELIC_LICENSE_KEY # previously added via `kubectl create secret generic devops-course-newrelic --from-literal=newreliclicense=YOUR_NR_TOKEN`
             valueFrom:
               secretKeyRef:
-                name: devops-course-nr
-                key: newreliclicence
+                name: devops-course-newrelic
+                key: newreliclicense
           - name: SPRING_PROFILE
             value: integration
 ---
