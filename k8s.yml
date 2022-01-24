@@ -172,6 +172,8 @@ spec:
               secretKeyRef:
                 name: devops-course-nr
                 key: newreliclicence
+          - name: SPRING_PROFILE
+            value: integration
 ---
 
 kind: ConfigMap
