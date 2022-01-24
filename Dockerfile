@@ -32,7 +32,8 @@ COPY newrelic-agent-7.5.0.jar newrelic.jar
 COPY newrelic.yml newrelic.yml
 
 
-RUN cat newrelic.yml | sed -e "s/<%= license_key %>/${NEWRELIC_KEY}/" > newrelic.yml.new
+RUN echo $NEWRELIC_KEY
+RUN cat newrelic.yml | sed -e "s/<%= license_key %>/'${NEWRELIC_KEY}'/" > newrelic.yml.new
 RUN mv newrelic.yml newrelic.yml.default
 RUN mv newrelic.yml.new newrelic.yml
 
