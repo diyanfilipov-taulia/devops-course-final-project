@@ -14,8 +14,8 @@ jobs:
       - run: |
           echo PR #${{ github.event.number }} has been merged
       - uses: actions/checkout@v2
-      - name: Build project
-        run: ./gradlew build
+#      - name: Build project
+#        run: ./gradlew build
       - name: Build a Docker image
         env:
           IMAGE_TAG: ${{ github.sha }}
@@ -63,14 +63,3 @@ jobs:
         with:
           url-to-hit: https://devops-final-project-${{ secrets.OKTETO_NAMESPACE }}.cloud.okteto.net/course/1
           expected-statuses: "200"
-  slackNotification:
-    name: Slack Notification
-    needs: deploy
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Slack Notification
-      uses: rtCamp/action-slack-notify@v2
-      env:
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-        SLACK_USERNAME: diyan.filipov
