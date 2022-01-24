@@ -4,9 +4,11 @@ name: CI workflow
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 on:
-  pull_request:
+  push:
+    branches:
+      - better-docker-image-versioning
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+      # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   test-project:
     runs-on: ubuntu-latest
@@ -59,8 +61,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-#      - name: Build project
-#        run: ./gradlew build
+      - name: Set GitHub Revision
+        run: echo "GITHUB_SHA_SHORT=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
+      - name: Print GitHub Revision
+        run: echo $GITHUB_SHA_SHORT
       - name: Build a Docker image
         env:
           IMAGE_TAG: ${{ github.sha }}

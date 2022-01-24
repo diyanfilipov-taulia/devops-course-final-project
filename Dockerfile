@@ -23,14 +23,14 @@ RUN ./gradlew build -x test
 
 # actual container
 FROM openjdk:16
-ENV ARTIFACT_NAME=devops-final-project-0.0.1.jar
+#ENV ARTIFACT_NAME=devops-final-project-0.0.1.jar
 ENV APP_HOME=/workspace/app
 
 WORKDIR $APP_HOME
-COPY --from=TEMP_BUILD_JAR $APP_HOME/build/libs/$ARTIFACT_NAME .
+COPY --from=TEMP_BUILD_JAR $APP_HOME/build/libs/*.jar app.jar
 COPY newrelic-agent-7.5.0.jar newrelic.jar
 COPY newrelic.yml newrelic.yml
 
 ENV JAVA_OPTS="-Xmx2G -Xms2G -XX:+UseG1GC -javaagent:./newrelic.jar -Dnewrelic.config.file=./newrelic.yml -Dnewrelic.environment=production"
-ENTRYPOINT exec java -Dspring.profiles.active=${SPRING_PROFILE} ${JAVA_OPTS} -jar ${ARTIFACT_NAME}
+ENTRYPOINT exec java -Dspring.profiles.active=${SPRING_PROFILE} ${JAVA_OPTS} -jar app.jar
 EXPOSE 10333
