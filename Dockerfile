@@ -32,11 +32,12 @@ COPY newrelic-agent-7.5.0.jar newrelic.jar
 COPY newrelic.yml newrelic.yml
 
 
-ARG NEWRELIC_KEY
-RUN cat newrelic.yml | sed -e "s/<%= license_key %>/${NEWRELIC_KEY}/" > newrelic.yml.new
-RUN mv newrelic.yml newrelic.yml.default
-RUN mv newrelic.yml.new newrelic.yml
+#ARG NEWRELIC_KEY
+#RUN cat newrelic.yml | sed -e "s/<%= license_key %>/${NEWRELIC_KEY}/" > newrelic.yml.new
+#RUN mv newrelic.yml newrelic.yml.default
+#RUN mv newrelic.yml.new newrelic.yml
 
-ENV JAVA_OPTS="-Xmx2G -Xms2G -XX:+UseG1GC -javaagent:./newrelic.jar -Dnewrelic.config.file=./newrelic.yml -Dnewrelic.environment=production"
+#-Dnewrelic.config.file=./newrelic.yml
+ENV JAVA_OPTS="-Xmx2G -Xms2G -XX:+UseG1GC -javaagent:./newrelic.jar -Dnewrelic.config.license_key=${NEWRELIC_KEY} -Dnewrelic.app_name=devops-final-project -Dnewrelic.environment=production"
 ENTRYPOINT exec java -Dspring.profiles.active=${SPRING_PROFILE} ${JAVA_OPTS} -jar ${ARTIFACT_NAME}
 EXPOSE 10333
