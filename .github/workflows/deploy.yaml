@@ -10,12 +10,17 @@ jobs:
     # this job will only run if the PR has been merged
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
+      - uses: act10ns/slack@v1
+        with:
+          status: starting
+          message: Starting Docker Build and Push...
+          if: always()
       - run: |
           echo PR #${{ github.event.number }} has been merged
       - uses: actions/checkout@v2
-#      - name: Build project
-#        run: ./gradlew build
       - name: Build a Docker image
         env:
           IMAGE_TAG: ${{ github.sha }}
@@ -29,17 +34,11 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Publish docker image
-        #if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
         run: docker push --all-tags ${{ secrets.DOCKERHUB_USERNAME }}/devops-final-project
       - name: Context
         uses: okteto/context@latest
         with:
           token: ${{ secrets.OKTETO_TOKEN }}
-#       - name: Build
-#         uses: okteto/actions/build@v1
-#         with:
-#           token: ${{ secrets.OKTETO_TOKEN }}
-#           tag: ${{ secrets.DOCKERHUB_USERNAME }}/devops-final-project:${{ github.sha }}
       - name: Get Kubeconfig
         uses: okteto/actions/namespace@v1
         id: kubeconf-step
@@ -48,8 +47,6 @@ jobs:
           namespace: ${{ secrets.OKTETO_NAMESPACE }}
       - name: Deploy and Wait
         uses: okteto/actions/deploy@v1
-#        env:
-#          KUBECONFIG: ${{ steps.kubeconf-step.outputs.kubeconfig }}
         with:
           namespace: ${{ secrets.OKTETO_NAMESPACE }}
           manifest: k8s.yml
@@ -63,3 +60,8 @@ jobs:
         with:
           url-to-hit: https://devops-final-project-${{ secrets.OKTETO_NAMESPACE }}.cloud.okteto.net/course/1
           expected-statuses: "200"
+      - uses: act10ns/slack@v1
+        with:
+          status: ${{ job.status }}
+          steps: ${{ toJson(steps) }}
+        if: always()
