@@ -98,7 +98,7 @@ jobs:
       - name: Build a Docker image
         env:
           IMAGE_TAG: ${{ github.sha }}
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.ARTIFACT_NAME }}-${{ env.PROJECT_VERSION }}-${{ env.PROJECT_SHA }}
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.ARTIFACT_NAME }}-${{ env.PROJECT_VERSION }}:${{ env.PROJECT_SHA }}
       - name: Security scan on docker image
         uses: snyk/actions/docker@master
         id: docker-image-scan
