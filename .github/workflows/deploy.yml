@@ -18,7 +18,7 @@ jobs:
         with:
           status: starting
           message: Starting Docker Build and Push...
-          if: always()
+        if: always()
       - run: |
           echo PR #${{ github.event.number }} has been merged
       - uses: actions/checkout@v2
