@@ -30,14 +30,14 @@ jobs:
       - name: Build a Docker image
         env:
           IMAGE_TAG: ${{ github.sha }}
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.ARTIFACT_NAME }}-${{ env.PROJECT_VERSION }}-${{ env.PROJECT_SHA }} .
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.ARTIFACT_NAME }}-${{ env.PROJECT_VERSION }}:${{ env.PROJECT_SHA }} .
       - name: Log in to Docker Hub
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Publish docker image
-        run: docker push --all-tags ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.ARTIFACT_NAME }}-${{ env.PROJECT_VERSION }}-${{ env.PROJECT_SHA }}
+        run: docker push --all-tags ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.ARTIFACT_NAME }}-${{ env.PROJECT_VERSION }}:${{ env.PROJECT_SHA }}
       - name: Context
         uses: okteto/context@latest
         with:
@@ -53,7 +53,7 @@ jobs:
         with:
           namespace: ${{ secrets.OKTETO_NAMESPACE }}
           manifest: k8s.yml
-          tag: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.ARTIFACT_NAME }}-${{ env.PROJECT_VERSION }}-${{ env.PROJECT_SHA }}
+          tag: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.ARTIFACT_NAME }}-${{ env.PROJECT_VERSION }}:${{ env.PROJECT_SHA }}
           waitOn: deployment/devops-final-project
       - name: Sleep for 90 seconds
         run: sleep 90s
