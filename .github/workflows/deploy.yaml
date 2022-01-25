@@ -24,9 +24,9 @@ jobs:
           echo PR #${{ github.event.number }} has been merged
       - uses: actions/checkout@v2
       - name: Set GitHub Revision
-        run: echo "PROJECT_SHA=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
+        run: echo "PROJECT_SHA=$(echo $GITHUB_SHA | cut -c 1-6)" >> "$GITHUB_ENV"
       - name: Set GitHub Revision
-        run: echo "PROJECT_VERSION=$(echo ./gradlew properties --no-daemon --console=plain -q | grep version | awk '{print $2}')" >> $GITHUB_ENV
+        run: echo "PROJECT_VERSION=$(echo ./gradlew properties --no-daemon -q | grep version | awk '{print $2}')" >> "$GITHUB_ENV"
       - name: Build a Docker image
         env:
           IMAGE_TAG: ${{ github.sha }}
