@@ -55,7 +55,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "build(detect-secrets): Commit the newly-generated .secrets.baseline file"
-  SAST:
+  SCA:
     needs: test-project
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -70,7 +70,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew sonarqube
-  security:
+  SAST:
     needs: test-project
     runs-on: ubuntu-latest
     steps:
@@ -87,7 +87,7 @@ jobs:
         with:
           sarif_file: snyk.sarif
   docker-image-scan:
-    needs: [check-for-secrets, SAST, security]
+    needs: [check-for-secrets, SCA, SAST]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
