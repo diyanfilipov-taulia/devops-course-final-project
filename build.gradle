@@ -8,7 +8,7 @@ plugins {
 }
 
 group = 'com.telerik'
-version = '0.0.5'
+version = '0.0.7'
 sourceCompatibility = '11'
 
 repositories {
