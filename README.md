@@ -30,6 +30,8 @@ Perform the following actions if you want to run the app in your own CI/CD conte
 
 ## CI/CD Pipeline with GitHub Actions
 
+!(CI/CD diagram)[/ci-cd.png]
+
 
 
 
