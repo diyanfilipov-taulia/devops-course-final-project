@@ -19,7 +19,7 @@ COPY gradle gradle
 COPY build.gradle settings.gradle gradlew ./
 COPY src src
 
-RUN ./gradlew build -x test
+RUN ./gradlew bootJar
 
 # actual container
 FROM openjdk:16

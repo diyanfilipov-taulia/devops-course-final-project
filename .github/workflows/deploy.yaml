@@ -1,4 +1,6 @@
 name: CD workflow
+env:
+  ARTIFACT_NAME: 'devops-final-project'
 
 on:
   pull_request:
@@ -21,20 +23,22 @@ jobs:
       - run: |
           echo PR #${{ github.event.number }} has been merged
       - uses: actions/checkout@v2
+      - name: Set GitHub Revision
+        run: echo "PROJECT_REV=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
+      - name: Set GitHub Revision
+        run: echo "PROJECT_VERSION=$(echo ./gradlew properties --no-daemon --console=plain -q | grep "^version:" | awk '{print $2}')" >> $GITHUB_ENV
       - name: Build a Docker image
         env:
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/devops-final-project:${{ env.IMAGE_TAG }} . \
-
-          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/devops-final-project:${{ env.IMAGE_TAG }} ${{ secrets.DOCKERHUB_USERNAME }}/devops-final-project:latest
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.ARTIFACT_NAME }}-${{ env.PROJECT_VERSION }}-${{ env.PROJECT_REV }}
       - name: Log in to Docker Hub
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Publish docker image
-        run: docker push --all-tags ${{ secrets.DOCKERHUB_USERNAME }}/devops-final-project
+        run: docker push --all-tags ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.ARTIFACT_NAME }}-${{ env.PROJECT_VERSION }}-${{ env.PROJECT_REV }}
       - name: Context
         uses: okteto/context@latest
         with:
@@ -50,7 +54,7 @@ jobs:
         with:
           namespace: ${{ secrets.OKTETO_NAMESPACE }}
           manifest: k8s.yml
-          tag: ${{ secrets.DOCKERHUB_USERNAME }}/devops-final-project:${{ github.sha }}
+          tag: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.ARTIFACT_NAME }}-${{ env.PROJECT_VERSION }}-${{ env.PROJECT_REV }}
           waitOn: deployment/devops-final-project
       - name: Sleep for 90 seconds
         run: sleep 90s

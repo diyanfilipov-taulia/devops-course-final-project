@@ -1,6 +1,8 @@
 # This is a basic workflow to help you get started with Actions
 
 name: CI workflow
+env:
+  ARTIFACT_NAME: 'devops-final-project'
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 on:
@@ -23,11 +25,36 @@ jobs:
       uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
     - name: Run unit and integration tests
       run: ./gradlew check
+  lint:
+    name: Lint it
+    needs: test-project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Lint Code Base
+        uses: github/super-linter/slim@v4
+        env:
+          VALIDATE_BASH: false
+          VALIDATE_DOCKERFILE_HADOLINT: false
+          VALIDATE_MARKDOWN: false
+  check-for-secrets:
+    name: Check for secrets
+    needs: test-project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Run Yelp's detect-secrets
+        uses: RobertFischer/detect-secrets-action@v2.0.0
+      - name: Commit back .secrets.baseline (if it was missing)
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "build(detect-secrets): Commit the newly-generated .secrets.baseline file"
   SAST:
     needs: test-project
     runs-on: ubuntu-latest
     timeout-minutes: 30
-
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11
@@ -57,21 +84,19 @@ jobs:
         with:
           sarif_file: snyk.sarif
   docker-image-scan:
-    needs: [SAST, security]
+    needs: [lint, check-for-secrets, SAST, security]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Set GitHub Revision
-        run: echo "GITHUB_SHA_SHORT=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
-      - name: Print GitHub Revision
-        run: echo $GITHUB_SHA_SHORT
+        run: echo "PROJECT_REV=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
+      - name: Set GitHub Revision
+        run: echo "PROJECT_VERSION=$(echo ./gradlew properties --no-daemon --console=plain -q | grep "^version:" | awk '{print $2}')" >> $GITHUB_ENV
       - name: Build a Docker image
         env:
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/devops-final-project:${{ env.IMAGE_TAG }} . \
-
-          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/devops-final-project:${{ env.IMAGE_TAG }} ${{ secrets.DOCKERHUB_USERNAME }}/devops-final-project:latest
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.ARTIFACT_NAME }}-${{ env.PROJECT_VERSION }}-${{ env.PROJECT_REV }}
       - name: Security scan on docker image
         uses: snyk/actions/docker@master
         id: docker-image-scan
@@ -82,7 +107,7 @@ jobs:
           # or you can signup for free at https://snyk.io/login
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: ${{ secrets.DOCKERHUB_USERNAME }}/devops-final-project
+          image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.ARTIFACT_NAME }}-${{ env.PROJECT_VERSION }}-${{ env.PROJECT_REV }}
           args: --file=Dockerfile
             --severity-threshold=critical
             --sarif-file-output=docker.snyk.sarif
