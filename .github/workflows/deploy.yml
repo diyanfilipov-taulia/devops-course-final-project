@@ -1,6 +1,7 @@
 name: CD workflow
 env:
   ARTIFACT_NAME: 'devops-final-project'
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
 on:
   pull_request:
@@ -12,8 +13,6 @@ jobs:
     # this job will only run if the PR has been merged
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-    env:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
       - uses: act10ns/slack@v1
         with:
@@ -43,8 +42,6 @@ jobs:
     if: github.event.pull_request.merged == true
     needs: build_and_publish_image_job
     runs-on: ubuntu-latest
-    env:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
       - uses: actions/checkout@v2
       - name: Context
