@@ -102,7 +102,7 @@ spec:
             valueFrom: # Read environment variables from kubernetes secrets
               secretKeyRef:
                 name: devops-course-db
-                key: rootpassword
+                key: rootpasswordkey
           - name: MYSQL_DATABASE
             valueFrom:
               secretKeyRef:
@@ -117,7 +117,7 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: devops-course-db
-                key: password
+                key: passwordkey
           - name: NEW_RELIC_LICENSE_KEY # previously added via `kubectl create secret generic devops-course-newrelic --from-literal=newreliclicense=YOUR_NR_TOKEN`
             valueFrom:
               secretKeyRef:
