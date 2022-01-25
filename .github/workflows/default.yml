@@ -88,13 +88,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set GitHub Revision
-        run: "echo PROJECT_REV=$(echo $GITHUB_SHA | cut -c 1-6) >> $GITHUB_ENV"
+        run: echo "PROJECT_SHA=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
       - name: Set GitHub Revision
-        run: "echo PROJECT_VERSION=$(echo ./gradlew properties --no-daemon --console=plain -q | grep version | awk '{print $2}') >> $GITHUB_ENV"
+        run: echo "PROJECT_VERSION=$(echo ./gradlew properties --no-daemon --console=plain -q | grep version | awk '{print $2}')" >> $GITHUB_ENV
       - name: Build a Docker image
         env:
           IMAGE_TAG: ${{ github.sha }}
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.ARTIFACT_NAME }}-${{ env.PROJECT_VERSION }}-${{ env.PROJECT_REV }}
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.ARTIFACT_NAME }}-${{ env.PROJECT_SHA }}-${{ env.PROJECT_REV }}
       - name: Security scan on docker image
         uses: snyk/actions/docker@master
         id: docker-image-scan
