@@ -47,7 +47,7 @@ spec:
           name: mysql
           env:                        # Environment variables passed to the container
             # all passwords are previously created with
-            # kubectl create secret generic devops-course-db --from-literal=rootpassword=admin --from-literal=username=devopscoursedbuser --from-literal=password=test1234 --from-literal=database=devops-course-db
+            # kubectl create secret generic devops-course-db --from-literal=rootpassword=*** --from-literal=username=devopscoursedbuser --from-literal=password=*** --from-literal=database=devops-course-db
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:                # Read environment variables from kubernetes secrets
                 secretKeyRef:
