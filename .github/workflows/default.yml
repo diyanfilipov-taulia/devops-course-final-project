@@ -92,9 +92,9 @@ jobs:
         with:
           java-version: 11
       - name: Set GitHub Revision
-        run: echo PROJECT_SHA="$(echo $GITHUB_SHA | cut -c 1-6)" >> "$GITHUB_ENV"
+        run: echo PROJECT_SHA="$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
       - name: Set Project version
-        run: echo PROJECT_VERSION="$(echo ./gradlew properties --no-daemon -q | grep version | awk '{print $2}')" >> "$GITHUB_ENV"
+        run: echo PROJECT_VERSION="$(./gradlew properties --no-daemon -q | grep version | awk '{print $2}')" >> $GITHUB_ENV
       - name: Build a Docker image
         env:
           IMAGE_TAG: ${{ github.sha }}
