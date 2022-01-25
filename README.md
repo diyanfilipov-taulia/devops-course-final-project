@@ -1,4 +1,4 @@
-# Spring Boot API with Github Actions and Okteto 
+# Spring Boot API with GitHub Actions and Okteto 
 
 This is an application providing Course management via REST calls.
 
@@ -6,7 +6,7 @@ This is an application providing Course management via REST calls.
 
 Perform the following actions if you want to run the app in your own CI/CD context.
 
-1. Fork this repo
+1. Fork this repository
 
 ### CI pipeline
 
